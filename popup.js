@@ -93,7 +93,7 @@ const buildHousehold = () => {
           const newLabel = document.createElement("label");
           newInput.type = 'radio';
           newInput.id = g;
-          newInput.name = g;
+          newInput.name = 'groupToPlayOn';
           newInput.value = gid;
           newLabel.setAttribute('for', g);
           newLabel.innerText = g;
