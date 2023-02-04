@@ -1,7 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Play This Page by SONOS",
+  "minimum_chrome_version": "101",
   "version": "1.0",
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "ruleset.json"
+      }
+    ]
+  },
   "icons": {
     "16": "images/icon-16.png",
     "32": "images/icon-32.png",
@@ -14,5 +24,12 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "permissions": ["scripting", "storage"]
+  "permissions": [
+    "scripting",
+    "storage",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
 }
