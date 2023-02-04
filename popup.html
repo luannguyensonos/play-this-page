@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    
+    <div id="headLogo">
+      <img src="./images/sonos_logo.png" width="200px">
+    </div>
+
+    <div id="loginForm" class="column">
+      <div>
+        <label>Email</label>
+        <input type="text" id="inputEmail">
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="inputPassword">
+      </div>
+      <div>
+        <button id="loginButton">Log in to SONOS</button>
+      </div>
+    </div>
+
+    <div id="loggingIn" class="column hide">
+      <div>
+        Logging in...
+      </div>
+    </div>
+
+    <div id="loggedIn" class="column hide">
+      <div>
+        Logged in as: <span id="loggedInAs"></span>
+      </div>
+      <div>
+        Access token: <span id="accessToken"></span>
+      </div>
+      <div>
+        <button id="logoutButton">Log out</button>
+      </div>
+    </div>
+
+    <div id="debug" class="column"></div>
+
+    <script src="./popup.js" type="module"></script>
+  </body>
+</html>
