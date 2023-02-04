@@ -19,24 +19,107 @@ const $logoutButton = document.getElementById("logoutButton");
 const $loginForm = document.getElementById("loginForm");
 const $loggingIn = document.getElementById("loggingIn");
 const $loggedIn = document.getElementById("loggedIn");
+const $parseResults = document.getElementById("parseResults");
+const $householdResults = document.getElementById("householdResults");
+const $householdFieldset = document.getElementById("householdFieldset");
+const $playWrapper = document.getElementById("playWrapper");
 const $debug = document.getElementById("debug");
 
-const showLoggedIn = (email, token) => {
+let myAccessToken;
+
+const doActions = (email, token) => {
+  $debug.innerText = '';
+  myAccessToken = token;
   $loginForm.classList.add("hide");
   $loggingIn.classList.add("hide");
   $loggedIn.classList.remove("hide");
   document.getElementById("loggedInAs").innerText = email
-  document.getElementById("accessToken").innerText = token
+
+  // Do stuff
+  parsePage();
+  buildHousehold();
+}
+
+const parsePage = () => {
+  $parseResults.classList.remove("hide");
+  // Do parsing logic on the page here...
+  // $parseResults.innerHTML = 'RESULTS HERE'
+}
+
+const fetchHousehold = () => {
+  if (myAccessToken) {
+    chrome.runtime.sendMessage({
+      token: myAccessToken,
+      type: "fetchHousehold",
+    }, (res) => {
+      if (!res || res === "ERROR") {
+        $householdResults.classList.add("hide");
+        $debug.innerText = 'Could not locate your SONOS system!'
+      } else if (res) {
+        const hhid = res.households[0].id
+        chrome.runtime.sendMessage({
+          hhid,
+          token: myAccessToken,
+          type: "fetchGroups",
+        }, (res) => {
+          if (!res || res === "ERROR") {
+            $householdResults.classList.add("hide");
+            $debug.innerText = 'Could not locate your SONOS system!'
+          } else if (res) {
+            const groups = res.groups
+            chrome.storage.local.set({
+              'groups': groups
+            }, () => {
+              buildHousehold()
+            })
+          }
+        })
+      }
+    })
+  }
+}
+
+const buildHousehold = () => {
+  chrome.storage.local.get(['groups'], (result) => {
+    if (result) {
+      if (result.groups) {
+        $householdResults.classList.remove("hide");
+        // Build out list using groups
+        result.groups.forEach((group) => {
+          const g = group.name;
+          const gid = group.id;
+          const newGroup = document.createElement("div");
+          const newInput = document.createElement("input");
+          const newLabel = document.createElement("label");
+          newInput.type = 'radio';
+          newInput.id = g;
+          newInput.name = g;
+          newInput.value = gid;
+          newLabel.setAttribute('for', g);
+          newLabel.innerText = g;
+          newGroup.appendChild(newInput);
+          newGroup.appendChild(newLabel);
+          $householdFieldset.appendChild(newGroup)
+        })
+        $playWrapper.classList.remove("hide");
+      } else {
+        fetchHousehold();
+      }
+    }
+  })
 }
 
 const initialize = () => {
   chrome.storage.local.get(['email', 'accessToken'], (result) => {
     if (result) {
       if (result.email && result.accessToken) {
-        showLoggedIn(result.email, result.accessToken)
+        doActions(result.email, result.accessToken);
       } else {
         $loginForm.classList.remove("hide");
         $loggedIn.classList.add("hide");
+        $parseResults.classList.add("hide");
+        $householdResults.classList.add("hide");
+        $playWrapper.classList.add("hide");
       }
     }
   })
@@ -58,15 +141,14 @@ $loginButton.addEventListener("click", () => {
     if (!res || res === "ERROR") {
       $loginForm.classList.remove("hide");
       $loggingIn.classList.add("hide");
-      $debug.innerText = 'FAILED TO LOG IN'
+      $debug.innerText = 'Log in failed. Try again later.'
     } else if (res) {
-      $debug.innerText = 'Fetch result: ' + JSON.stringify(res)
       const accessToken = res.access_token
       chrome.storage.local.set({
         'email': email,
         'accessToken': accessToken
-      }, () => {})
-      showLoggedIn(email, accessToken)
+      })
+      doActions(email, accessToken)
     }
   })
 });
@@ -74,12 +156,12 @@ $loginButton.addEventListener("click", () => {
 $logoutButton.addEventListener("click", () => {
   chrome.storage.local.set({
     'email': '',
-    'accessToken': ''
+    'accessToken': '',
+    'groups': ''
   }, () => {
-    $debug.innerText = 'LOGGED OUT'
+    $debug.innerText = 'Successfully logged out'
   })
   document.getElementById("inputEmail").value = ''
   document.getElementById("inputPassword").value = ''
-  $loginForm.classList.remove("hide");
-  $loggedIn.classList.add("hide");
+  initialize()
 });

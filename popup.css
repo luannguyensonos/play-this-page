@@ -16,21 +16,22 @@ limitations under the License.
 
 body {
   background-color: #CCC;
-  width: 20rem;
+  width: 27rem;
   height: auto;
   display: flex;
   flex-direction: column;
+  padding: 16px;
 }
 
 #headLogo {
   display: flex;
-  margin: 20px auto;
+  margin: 16px auto;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  margin: 20px auto;
+  margin: 16px auto;
 }
 
 .column > div {
@@ -39,6 +40,24 @@ body {
   margin: 12px 0px;
 }
 
+.row {
+  display: flex;
+  flex-direction: row;
+  margin: 16px 0;
+  width: 100%;
+  justify-content: space-between;
+}
+
 .hide {
   display: none;
+}
+
+#householdFieldset {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 23rem;
+}
+
+#householdFieldset > div {
+  margin: 8px 0;
 }

@@ -9,7 +9,7 @@
   <body>
     
     <div id="headLogo">
-      <img src="./images/sonos_logo.png" width="200px">
+      <img src="./images/sonos_logo.png" width="80px">
     </div>
 
     <div id="loginForm" class="column">
@@ -32,15 +32,28 @@
       </div>
     </div>
 
-    <div id="loggedIn" class="column hide">
+    <div id="loggedIn" class="row hide">
       <div>
         Logged in as: <span id="loggedInAs"></span>
       </div>
       <div>
-        Access token: <span id="accessToken"></span>
-      </div>
-      <div>
         <button id="logoutButton">Log out</button>
+      </div>
+    </div>
+
+    <div id="parseResults" class="column hide">
+      Creating playlist... hang tight...
+    </div>
+
+    <div id="householdResults" class="column hide">
+      <fieldset id="householdFieldset">
+        <legend>Start playlist on:</legend>
+      </fieldset>
+    </div>
+
+    <div id="playWrapper" class="column hide">
+      <div>
+        <button id="playButton">Play</button>
       </div>
     </div>
 
