@@ -43,7 +43,7 @@ const doActions = ( email, token ) => {
   document.getElementById( "loggedInAs" ).innerText = email
 
   // Do stuff
-  showPrompt();
+  //showPrompt();
   doOpenAICall();
   buildHousehold();
 }
@@ -59,6 +59,13 @@ const openAILoader = () => {
   }
 }
 
+const fnpLoader = () => {
+  if ( $playButton.innerText.startsWith( 'Find' ) ) {
+    $playButton.innerText += '.'
+    setTimeout( () => { fnpLoader() }, 333 )
+  }
+}
+
 const doOpenAICall = ( promptOverride ) => {
   $parseResults.innerText = `OpenAI is attempting to create your playlist...`
   openAILoader()
@@ -67,7 +74,7 @@ const doOpenAICall = ( promptOverride ) => {
   $playButton.disabled = true
   chrome.tabs.query( { active: true, lastFocusedWindow: true }, tabs => {
     let prompt = promptOverride ? promptOverride : tabs && tabs[ 0 ] ? tabs[ 0 ].title : "songs that make you happy";
-    $prompt.innerText = 'Add a custom prompt to create a new playlist...'
+    $prompt.innerText = promptOverride ? promptOverride : `Don't like the playlist? Add a custom prompt to generate a new one...`
     chrome.runtime.sendMessage( {
       prompt: prompt,
       type: "fetchPlaylist",
@@ -88,6 +95,7 @@ const doOpenAICall = ( promptOverride ) => {
         }, () => {
           $playButton.innerHTML = "Play"
           $playButton.disabled = false
+          showPrompt()
         } )
       }
       $promptSubmit.disabled = false
@@ -227,6 +235,8 @@ $logoutButton.addEventListener( "click", () => {
 } );
 
 const handlePlay = ( retryAttempt ) => {
+  $playButton.innerHTML = "Find & Play is loading your playlist..."
+  fnpLoader()
   $playButton.disabled = true
   let groupId;
   document.getElementsByName( "groupToPlayOn" ).forEach( e => {
@@ -248,6 +258,7 @@ const handlePlay = ( retryAttempt ) => {
                 // Give it one retry and F&P is a little finnicky
                 handlePlay( 1 )
               } else {
+                $playButton.innerHTML = "Play"
                 $debug.innerText = `Sorry! Something went wrong. Try again later.`
                 $playButton.disabled = false
               }
