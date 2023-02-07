@@ -81,6 +81,7 @@ const doOpenAICall = ( promptOverride ) => {
     }, ( res ) => {
       if ( !res || res === "ERROR" ) {
         $parseResults.innerText = `Sorry, could not create a playlist. Try again with a different prompt.`
+        showPrompt()
       } else if ( res ) {
         const list = document.createElement( 'ol' )
         res.forEach( r => {

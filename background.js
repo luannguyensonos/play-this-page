@@ -105,7 +105,9 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
 
               const playlist = data.choices[ 0 ].text
               console.log( playlist, 'playlist raw response' )
-              let songArr = `[${playlist.replace(/.*!?{(.*)}/g, `{$1},`)}]`
+              let songArr = playlist
+              songArr = songArr.replace(/.*!?{(.*!?)}.*/g, `{$1},`)
+              songArr = `[${songArr}]` // add array back in
               console.log( songArr, 'array wrapping' )
               songArr = songArr.replace( /\s/g, ' ' ) // Convert all whitespaces
               songArr = songArr.replace( /}\s*,\s*]/g, '}]' ) // Remove trailing comma
@@ -114,7 +116,11 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
               const playlistObj = JSON.parse( `{"playlist":${ songArr }}` )
               if ( playlistObj && playlistObj.playlist ) {
                 console.log( 'Parsed playlist', playlistObj.playlist )
-                sendResponse( playlistObj.playlist )
+                sendResponse( 
+                  playlistObj.playlist.length === 1 ? 
+                    playlistObj.playlist[0] : 
+                    playlistObj.playlist
+                )
               } else {
                 sendResponse( "ERROR" )
               }
