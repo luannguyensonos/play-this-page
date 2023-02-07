@@ -67,7 +67,7 @@ const fnpLoader = () => {
 }
 
 const doOpenAICall = ( promptOverride ) => {
-  $parseResults.innerText = `OpenAI is attempting to create your playlist...`
+  $parseResults.innerText = `OpenAI is attempting to create a playlist based on the webpage that you're on...`
   openAILoader()
   $parseResults.classList.remove( "hide" )
   $promptSubmit.disabled = true

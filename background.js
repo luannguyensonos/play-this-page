@@ -82,12 +82,12 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
         break
       case 'fetchPlaylist':
 
-        const prompt = `Create 5 song playlist in a JSON array with each item formatted as {"artist": artistName, "track": trackName} based on ${ message.prompt }`
+        const prompt = `Create 5 song playlist formatted as a JSON array with each array item formatted as {"artist": artistName, "track": trackName} based on ${ message.prompt }`
         const body = {
           model: 'text-davinci-003',
           prompt: prompt,
           max_tokens: 150,
-          temperature: 0.75,
+          temperature: 0.5,
           n: 1
         }
         console.log( body, 'body' )
@@ -104,15 +104,11 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
 
 
               const playlist = data.choices[ 0 ].text
-              console.log( playlist, 'playlist' )
-              const arrayStart = playlist.indexOf( '[' )
-              const arrayEnd = playlist.indexOf( ']' ) ? playlist.indexOf( ']' ) + 1 : playlist.length
-              let songArr = playlist.slice( arrayStart, arrayEnd )
-
-              // These are to handle inconsistencies with the return object
-              if ( !songArr.indexOf( ']' ) ) songArr = `${ songArr }]`
-              songArr = songArr.replace( /\s/g, ' ' )
-              songArr = songArr.replace( /}\s*,\s*]/g, '}]' )
+              console.log( playlist, 'playlist raw response' )
+              let songArr = `[${playlist.replace(/.*!?{(.*)}/g, `{$1},`)}]`
+              console.log( songArr, 'array wrapping' )
+              songArr = songArr.replace( /\s/g, ' ' ) // Convert all whitespaces
+              songArr = songArr.replace( /}\s*,\s*]/g, '}]' ) // Remove trailing comma
               console.log( Array.isArray( songArr ), songArr )
 
               const playlistObj = JSON.parse( `{"playlist":${ songArr }}` )
