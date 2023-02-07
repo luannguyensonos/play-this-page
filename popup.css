@@ -57,11 +57,11 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: 28rem;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 #householdFieldset > div {
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 #promptWrapper {
@@ -74,12 +74,19 @@ body {
 }
 
 #parseResults {
-  font-size: 0.95rem;
   margin: 10px 16px 24px 16px;
 }
 
-ol {
-  margin: 0;
+.results {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  font-size: 11px;
+  width: 100%;
+}
+
+.results > span {
+  border: 1px solid #bbb;
+  padding: 6px;
 }
 
 #debug {
@@ -95,11 +102,17 @@ ol {
 }
 
 button {
+  font-size: 9px;
   background-color: #000;
   color: #FFF;
   border: 1px solid #333;
   padding: 4px 12px;
   border-radius: 12px;
+}
+
+button:disabled {
+  background-color: #aaa;
+  border: 1px solid #aaa;
 }
 
 #logoutButton {

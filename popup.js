@@ -83,9 +83,10 @@ const doOpenAICall = ( promptOverride ) => {
         $parseResults.innerText = `Sorry, could not create a playlist. Try again with a different prompt.`
         showPrompt()
       } else if ( res ) {
-        const list = document.createElement( 'ol' )
+        const list = document.createElement( 'div' )
+        list.className = 'results'
         res.forEach( r => {
-          const li = document.createElement( 'li' )
+          const li = document.createElement( 'span' )
           li.innerText = `"${ r.track }" by ${ r.artist }`
           list.appendChild( li )
         } )

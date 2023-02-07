@@ -82,11 +82,11 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
         break
       case 'fetchPlaylist':
 
-        const prompt = `Create 5 song playlist formatted as a JSON array with each array item formatted as {"artist": artistName, "track": trackName} based on ${ message.prompt }`
+        const prompt = `Create 10 song playlist formatted as a JSON array with each array item formatted as {"artist": artistName, "track": trackName} based on ${ message.prompt }`
         const body = {
           model: 'text-davinci-003',
           prompt: prompt,
-          max_tokens: 150,
+          max_tokens: 300,
           temperature: 0.5,
           n: 1
         }
