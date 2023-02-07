@@ -1,4 +1,4 @@
-const gptKey = 'c2stTHJsTXZxSUdtQzdSeExISm9IaHlUM0JsYmtGSmg2TVQxNHA2MXdtUWZMcGdlUE8x'
+import gptAPIKey from './secrets.js'
 
 
 chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse ) {
@@ -35,7 +35,7 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
             sendResponse( res );
           } )
           .catch( ( e ) => {
-            console.log( res, 'ERROR' )
+            console.log( e, 'ERROR' )
             sendResponse( "ERROR" );
           } )
         break
@@ -52,7 +52,7 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
             sendResponse( res );
           } )
           .catch( ( e ) => {
-            console.log( res, 'ERROR' )
+            console.log( e, 'ERROR' )
             sendResponse( "ERROR" );
           } )
         break
@@ -61,22 +61,22 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
           "tracksMetadata": message.playlist,
           "playOnCompletion": true
         }
-        console.log('FNP', message.groupId, fnpbody)
-        fetch( `https://api.ws.sonos.com/control/api/v1/groups/${message.groupId}/find/tracksAndLoad`, {
+        console.log( 'FNP', message.groupId, fnpbody )
+        fetch( `https://api.ws.sonos.com/control/api/v1/groups/${ message.groupId }/find/tracksAndLoad`, {
           method: "POST",
           Origin: 'test',
           headers: {
             'Authorization': `Bearer ${ message.token }`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(fnpbody)
+          body: JSON.stringify( fnpbody )
         } )
           .then( ( res ) => res.json() ).then( ( res ) => {
             console.log( res, 'res' )
             sendResponse( res );
           } )
           .catch( ( e ) => {
-            console.log( res, 'ERROR' )
+            console.log( e, 'ERROR' )
             sendResponse( "ERROR" );
           } )
         break
@@ -94,28 +94,30 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
         fetch( `https://api.openai.com/v1/completions`, {
           method: "POST",
           headers: {
-            'Authorization': `Bearer ${atob(gptKey)}`,
+            'Authorization': `Bearer ${ gptAPIKey ?? atob( gptKey ) }`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify( body )
         } )
           .then( ( res ) => res.json() ).then( ( data ) => {
-            if (data && data.choices) {
+            if ( data && data.choices ) {
+
+
               const playlist = data.choices[ 0 ].text
               console.log( playlist, 'playlist' )
               const arrayStart = playlist.indexOf( '[' )
-              const arrayEnd = playlist.indexOf( ']' ) ? playlist.indexOf( ']' )+1 : playlist.length
+              const arrayEnd = playlist.indexOf( ']' ) ? playlist.indexOf( ']' ) + 1 : playlist.length
               let songArr = playlist.slice( arrayStart, arrayEnd )
 
               // These are to handle inconsistencies with the return object
-              if (!songArr.indexOf( ']' )) songArr = `${songArr}]`
-              songArr = songArr.replace(/\s/g, ' ')
-              songArr = songArr.replace(/}\s*,\s*]/g, '}]')
+              if ( !songArr.indexOf( ']' ) ) songArr = `${ songArr }]`
+              songArr = songArr.replace( /\s/g, ' ' )
+              songArr = songArr.replace( /}\s*,\s*]/g, '}]' )
               console.log( Array.isArray( songArr ), songArr )
 
-              const playlistObj = JSON.parse(`{"playlist":${songArr}}`)
-              if (playlistObj && playlistObj.playlist) {
-                console.log('Parsed playlist', playlistObj.playlist)
+              const playlistObj = JSON.parse( `{"playlist":${ songArr }}` )
+              if ( playlistObj && playlistObj.playlist ) {
+                console.log( 'Parsed playlist', playlistObj.playlist )
                 sendResponse( playlistObj.playlist )
               } else {
                 sendResponse( "ERROR" )
@@ -125,7 +127,7 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
             }
           } )
           .catch( ( e ) => {
-            console.log( e, 'ERRORe' )
+            console.log( e, 'ERROR' )
             sendResponse( "ERROR" )
           } )
         break

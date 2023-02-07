@@ -53,21 +53,21 @@ const showPrompt = () => {
 }
 
 const openAILoader = () => {
-  if ($parseResults.innerText.startsWith('OpenAI')) {
+  if ( $parseResults.innerText.startsWith( 'OpenAI' ) ) {
     $parseResults.innerText += '.'
-    setTimeout(() => { openAILoader() }, 333)
+    setTimeout( () => { openAILoader() }, 333 )
   }
 }
 
-const doOpenAICall = (promptOverride) => {
+const doOpenAICall = ( promptOverride ) => {
   $parseResults.innerText = `OpenAI is attempting to create your playlist...`
   openAILoader()
   $parseResults.classList.remove( "hide" )
   $promptSubmit.disabled = true
   $playButton.disabled = true
   chrome.tabs.query( { active: true, lastFocusedWindow: true }, tabs => {
-    let prompt = promptOverride ? promptOverride : tabs && tabs[0] ? tabs[ 0 ].url : "songs that make you happy";
-    $prompt.innerText = prompt
+    let prompt = promptOverride ? promptOverride : tabs && tabs[ 0 ] ? tabs[ 0 ].title : "songs that make you happy";
+    $prompt.innerText = 'Add a custom prompt to create a new playlist...'
     chrome.runtime.sendMessage( {
       prompt: prompt,
       type: "fetchPlaylist",
@@ -75,14 +75,14 @@ const doOpenAICall = (promptOverride) => {
       if ( !res || res === "ERROR" ) {
         $parseResults.innerText = `Sorry, could not create a playlist. Try again with a different prompt.`
       } else if ( res ) {
-        const list = document.createElement('ol')
-        res.forEach(r => {
-          const li = document.createElement('li')
-          li.innerText = `"${r.track}" by ${r.artist}`
-          list.appendChild(li)
-        })
+        const list = document.createElement( 'ol' )
+        res.forEach( r => {
+          const li = document.createElement( 'li' )
+          li.innerText = `"${ r.track }" by ${ r.artist }`
+          list.appendChild( li )
+        } )
         $parseResults.innerHTML = '';
-        $parseResults.append(list)
+        $parseResults.append( list )
         chrome.storage.local.set( {
           'playlist': res
         }, () => {
@@ -93,7 +93,7 @@ const doOpenAICall = (promptOverride) => {
       $promptSubmit.disabled = false
     } )
   } )
-  if (DEBUG) $debug.innerText = `parsePage ${promptOverride} ${Date.now()}`
+  if ( DEBUG ) $debug.innerText = `parsePage ${ promptOverride } ${ Date.now() }`
 }
 
 const fetchHousehold = () => {
@@ -178,10 +178,10 @@ const initialize = () => {
 
 initialize()
 
-const handleLoginFailure = (msg) => {
+const handleLoginFailure = ( msg ) => {
   $loginForm.classList.remove( "hide" );
   $loggingIn.classList.add( "hide" );
-  $debug.innerText = `Log in failed: ${msg}`
+  $debug.innerText = `Log in failed: ${ msg }`
 }
 
 $loginButton.addEventListener( "click", () => {
@@ -195,19 +195,19 @@ $loginButton.addEventListener( "click", () => {
     password,
     type: "oktaCall",
   }, ( res ) => {
-    if ( !res || res === "ERROR") {
-      handleLoginFailure('Okta failed')
+    if ( !res || res === "ERROR" ) {
+      handleLoginFailure( 'Okta failed' )
     } else {
       const accessToken = res.access_token
-      if (accessToken) {
+      if ( accessToken ) {
         chrome.storage.local.set( {
           'email': email,
           'accessToken': accessToken
         } )
         doActions( email, accessToken )
       } else {
-        handleLoginFailure('No access token')
-        $debug.innerText = `Log in failed: ${JSON.stringify(res)}`
+        handleLoginFailure( 'No access token' )
+        $debug.innerText = `Log in failed: ${ JSON.stringify( res ) }`
       }
     }
   } )
@@ -226,14 +226,14 @@ $logoutButton.addEventListener( "click", () => {
   initialize()
 } );
 
-const handlePlay = (retryAttempt) => {
+const handlePlay = ( retryAttempt ) => {
   $playButton.disabled = true
   let groupId;
-  document.getElementsByName("groupToPlayOn").forEach(e => {
-    if (e.checked) groupId = e.value
-  })
-  if (groupId) {
-    if (DEBUG) $debug.innerText = `About to play to ${groupId}`
+  document.getElementsByName( "groupToPlayOn" ).forEach( e => {
+    if ( e.checked ) groupId = e.value
+  } )
+  if ( groupId ) {
+    if ( DEBUG ) $debug.innerText = `About to play to ${ groupId }`
     chrome.storage.local.get( [ 'playlist' ], ( result ) => {
       if ( result ) {
         if ( result.playlist && myAccessToken ) {
@@ -243,10 +243,10 @@ const handlePlay = (retryAttempt) => {
             playlist: result.playlist,
             type: "findAndPlay",
           }, ( res ) => {
-            if ( !res || res === "ERROR" || res.errorCode) {
-              if (!retryAttempt) {
+            if ( !res || res === "ERROR" || res.errorCode ) {
+              if ( !retryAttempt ) {
                 // Give it one retry and F&P is a little finnicky
-                handlePlay(1)
+                handlePlay( 1 )
               } else {
                 $debug.innerText = `Sorry! Something went wrong. Try again later.`
                 $playButton.disabled = false
@@ -257,7 +257,7 @@ const handlePlay = (retryAttempt) => {
             }
           } )
         } else {
-          $debug.innerText = `Sorry! Something went wrong. Try again later.`      
+          $debug.innerText = `Sorry! Something went wrong. Try again later.`
           $playButton.disabled = false
         }
       }
@@ -274,8 +274,8 @@ $playButton.addEventListener( "click", () => {
 
 $promptSubmit.addEventListener( "click", () => {
   const prompt = $prompt.value
-  console.log('Prompt submit', prompt)
-  if (prompt && prompt.length) {
-    doOpenAICall(prompt)
+  console.log( 'Prompt submit', prompt )
+  if ( prompt && prompt.length ) {
+    doOpenAICall( prompt )
   }
 } );
