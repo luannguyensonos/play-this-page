@@ -142,6 +142,10 @@ const buildHousehold = () => {
   chrome.storage.local.get( [ 'groups' ], ( result ) => {
     if ( result ) {
       if ( result.groups ) {
+        $householdFieldset.innerHTML = '';
+        const legend = document.createElement('legend');
+        legend.innerText = 'Select a speaker group to play on:'
+        $householdFieldset.appendChild(legend)
         $householdResults.classList.remove( "hide" );
         // Build out list using groups
         result.groups.forEach( ( group ) => {
