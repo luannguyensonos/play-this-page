@@ -83,4 +83,10 @@ ol {
   font-size: 0.85rem;
   font-weight: bold;
   color: red;
+  text-align: center;
+}
+
+#loggedIn {
+  align-items: center;
+  font-size: 11px;
 }

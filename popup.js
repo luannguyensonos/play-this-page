@@ -168,6 +168,7 @@ const initialize = () => {
         $loginForm.classList.remove( "hide" );
         $loggedIn.classList.add( "hide" );
         $parseResults.classList.add( "hide" );
+        $promptWrapper.classList.add( "hide" );
         $householdResults.classList.add( "hide" );
         $playWrapper.classList.add( "hide" );
       }

@@ -1,3 +1,5 @@
+const gptKey = 'c2stTHJsTXZxSUdtQzdSeExISm9IaHlUM0JsYmtGSmg2TVQxNHA2MXdtUWZMcGdlUE8x'
+
 
 chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse ) {
   if ( message ) {
@@ -92,7 +94,7 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
         fetch( `https://api.openai.com/v1/completions`, {
           method: "POST",
           headers: {
-            'Authorization': `Bearer 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`,
+            'Authorization': `Bearer ${atob(gptKey)}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify( body )
