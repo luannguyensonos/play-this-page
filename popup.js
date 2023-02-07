@@ -246,6 +246,7 @@ $playButton.addEventListener( "click", () => {
               $debug.innerText = `Sorry! Something went wrong. Try again later.`
               $playButton.disabled = false
             } else {
+              $debug.innerText = ""
               $playButton.innerHTML = "ENJOY!"
             }
           } )
