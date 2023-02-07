@@ -104,11 +104,11 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
               const playlist = data.choices[ 0 ].text
               console.log( playlist, 'playlist' )
               const arrayStart = playlist.indexOf( '[' )
-              const arrayEnd = playlist.indexOf( ']' )
-              let songArr = playlist.slice( arrayStart, arrayEnd ? arrayEnd+1 : playlist.length )
+              const arrayEnd = playlist.indexOf( ']' ) ? playlist.indexOf( ']' )+1 : playlist.length
+              let songArr = playlist.slice( arrayStart, arrayEnd )
 
               // These are to handle inconsistencies with the return object
-              if (!songArr.endsWith(']')) songArr = `${songArr}]`
+              if (!songArr.indexOf( ']' )) songArr = `${songArr}]`
               songArr = songArr.replace(/\s/g, ' ')
               songArr = songArr.replace(/}\s*,\s*]/g, '}]')
               console.log( Array.isArray( songArr ), songArr )
