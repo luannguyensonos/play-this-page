@@ -54,9 +54,33 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
             sendResponse( "ERROR" );
           } )
         break
+      case 'findAndPlay':
+        const fnpbody = {
+          "tracksMetadata": message.playlist,
+          "playOnCompletion": true
+        }
+        console.log('FNP', message.groupId, fnpbody)
+        fetch( `https://api.ws.sonos.com/control/api/v1/groups/${message.groupId}/find/tracksAndLoad`, {
+          method: "POST",
+          Origin: 'test',
+          headers: {
+            'Authorization': `Bearer ${ message.token }`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(fnpbody)
+        } )
+          .then( ( res ) => res.json() ).then( ( res ) => {
+            console.log( res, 'res' )
+            sendResponse( res );
+          } )
+          .catch( ( e ) => {
+            console.log( res, 'ERROR' )
+            sendResponse( "ERROR" );
+          } )
+        break
       case 'fetchPlaylist':
 
-        const prompt = `Create 5 song playlist in a JSON format with {artist: artistName, track: trackName} based on ${ message.prompt }`
+        const prompt = `Create 5 song playlist in a JSON format with {"artist": artistName, "track": trackName} based on ${ message.prompt }`
         const body = {
           model: 'text-davinci-003',
           prompt: prompt,
@@ -68,20 +92,35 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
         fetch( `https://api.openai.com/v1/completions`, {
           method: "POST",
           headers: {
-            'Authorization': `Bearer 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`,
+            'Authorization': `Bearer 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`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify( body )
         } )
           .then( ( res ) => res.json() ).then( ( data ) => {
-            const playlist = data.choices[ 0 ].text
-            console.log( playlist, 'playlist' )
-            const arrayStart = playlist.indexOf( '[' )
-            const arrayEnd = playlist.indexOf( ']' ) + 1
-            const songArr = playlist.slice( arrayStart, arrayEnd )
-            console.log( Array.isArray( songArr ), 'songArr' )
+            if (data && data.choices) {
+              const playlist = data.choices[ 0 ].text
+              console.log( playlist, 'playlist' )
+              const arrayStart = playlist.indexOf( '[' )
+              const arrayEnd = playlist.indexOf( ']' )
+              let songArr = playlist.slice( arrayStart, arrayEnd ? arrayEnd+1 : playlist.length )
 
-            sendResponse( songArr )
+              // These are to handle inconsistencies with the return object
+              if (!songArr.endsWith(']')) songArr = `${songArr}]`
+              songArr = songArr.replace(/\s/g, ' ')
+              songArr = songArr.replace(/}\s*,\s*]/g, '}]')
+              console.log( Array.isArray( songArr ), songArr )
+
+              const playlistObj = JSON.parse(`{"playlist":${songArr}}`)
+              if (playlistObj && playlistObj.playlist) {
+                console.log('Parsed playlist', playlistObj.playlist)
+                sendResponse( playlistObj.playlist )
+              } else {
+                sendResponse( "ERROR" )
+              }
+            } else {
+              sendResponse( "ERROR" )
+            }
           } )
           .catch( ( e ) => {
             console.log( e, 'ERRORe' )

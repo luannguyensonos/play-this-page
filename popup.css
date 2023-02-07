@@ -16,35 +16,35 @@ limitations under the License.
 
 body {
   background-color: #CCC;
-  width: 27rem;
+  width: 32rem;
   height: auto;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 10px 16px;
 }
 
 #headLogo {
   display: flex;
-  margin: 16px auto;
+  margin: 10px auto;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  margin: 16px auto;
+  margin: 10px auto;
 }
 
 .column > div {
   display: flex;
   flex-direction: column;
-  margin: 12px 0px;
+  margin: 8px 0px;
 }
 
 .row {
   display: flex;
   flex-direction: row;
-  margin: 16px 0;
-  width: 100%;
+  margin: 8px 16px;
+  width: 30rem;
   justify-content: space-between;
 }
 
@@ -54,10 +54,33 @@ body {
 
 #householdFieldset {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  width: 23rem;
+  grid-template-columns: repeat(3, 1fr);
+  width: 28rem;
 }
 
 #householdFieldset > div {
-  margin: 8px 0;
+  margin: 4px 0;
+}
+
+#promptWrapper {
+  width: 30rem;
+}
+
+#prompt {
+  height: 2rem;
+}
+
+#parseResults {
+  margin: 10px 16px 24px 16px;
+}
+
+ol {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+#debug {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: red;
 }

@@ -13,6 +13,8 @@
 // limitations under the License.
 
 
+const DEBUG = false
+
 const $loginButton = document.getElementById( "loginButton" );
 const $logoutButton = document.getElementById( "logoutButton" );
 
@@ -23,6 +25,10 @@ const $parseResults = document.getElementById( "parseResults" );
 const $householdResults = document.getElementById( "householdResults" );
 const $householdFieldset = document.getElementById( "householdFieldset" );
 const $playWrapper = document.getElementById( "playWrapper" );
+const $playButton = document.getElementById( "playButton" );
+const $promptWrapper = document.getElementById( "promptWrapper" );
+const $promptSubmit = document.getElementById( "promptSubmit" );
+const $prompt = document.getElementById( "prompt" );
 const $debug = document.getElementById( "debug" );
 
 let myAccessToken;
@@ -37,27 +43,57 @@ const doActions = ( email, token ) => {
   document.getElementById( "loggedInAs" ).innerText = email
 
   // Do stuff
-  parsePage();
+  showPrompt();
+  doOpenAICall();
   buildHousehold();
 }
 
-const parsePage = () => {
+const showPrompt = () => {
+  $promptWrapper.classList.remove( "hide" )
+}
+
+const openAILoader = () => {
+  if ($parseResults.innerText.startsWith('OpenAI')) {
+    $parseResults.innerText += '.'
+    setTimeout(() => { openAILoader() }, 333)
+  }
+}
+
+const doOpenAICall = (promptOverride) => {
+  $parseResults.innerText = `OpenAI is attempting to create your playlist...`
+  openAILoader()
   $parseResults.classList.remove( "hide" )
+  $promptSubmit.disabled = true
+  $playButton.disabled = true
   chrome.tabs.query( { active: true, lastFocusedWindow: true }, tabs => {
-    let url = tabs[ 0 ].url;
+    let prompt = promptOverride ? promptOverride : tabs && tabs[0] ? tabs[ 0 ].url : "songs that make you happy";
+    $prompt.innerText = prompt
     chrome.runtime.sendMessage( {
-      prompt: url,
+      prompt: prompt,
       type: "fetchPlaylist",
     }, ( res ) => {
       if ( !res || res === "ERROR" ) {
-        $parseResults.classList.add( "hide" );
-        $debug.innerText = 'Could not create a playlist!'
+        $parseResults.innerText = `Sorry, could not create a playlist. Try again with a different prompt.`
       } else if ( res ) {
-        $parseResults.innerHTML = res
+        const list = document.createElement('ol')
+        res.forEach(r => {
+          const li = document.createElement('li')
+          li.innerText = `"${r.track}" by ${r.artist}`
+          list.appendChild(li)
+        })
+        $parseResults.innerHTML = '';
+        $parseResults.append(list)
+        chrome.storage.local.set( {
+          'playlist': res
+        }, () => {
+          $playButton.innerHTML = "Play"
+          $playButton.disabled = false
+        } )
       }
+      $promptSubmit.disabled = false
     } )
   } )
-  //
+  if (DEBUG) $debug.innerText = `parsePage ${promptOverride} ${Date.now()}`
 }
 
 const fetchHousehold = () => {
@@ -141,6 +177,12 @@ const initialize = () => {
 
 initialize()
 
+const handleLoginFailure = (msg) => {
+  $loginForm.classList.remove( "hide" );
+  $loggingIn.classList.add( "hide" );
+  $debug.innerText = `Log in failed: ${msg}`
+}
+
 $loginButton.addEventListener( "click", () => {
   $loginForm.classList.add( "hide" );
   $loggingIn.classList.remove( "hide" );
@@ -152,17 +194,20 @@ $loginButton.addEventListener( "click", () => {
     password,
     type: "oktaCall",
   }, ( res ) => {
-    if ( !res || res === "ERROR" ) {
-      $loginForm.classList.remove( "hide" );
-      $loggingIn.classList.add( "hide" );
-      $debug.innerText = 'Log in failed. Try again later.'
-    } else if ( res ) {
+    if ( !res || res === "ERROR") {
+      handleLoginFailure('Okta failed')
+    } else {
       const accessToken = res.access_token
-      chrome.storage.local.set( {
-        'email': email,
-        'accessToken': accessToken
-      } )
-      doActions( email, accessToken )
+      if (accessToken) {
+        chrome.storage.local.set( {
+          'email': email,
+          'accessToken': accessToken
+        } )
+        doActions( email, accessToken )
+      } else {
+        handleLoginFailure('No access token')
+        $debug.innerText = `Log in failed: ${JSON.stringify(res)}`
+      }
     }
   } )
 } );
@@ -178,4 +223,48 @@ $logoutButton.addEventListener( "click", () => {
   document.getElementById( "inputEmail" ).value = ''
   document.getElementById( "inputPassword" ).value = ''
   initialize()
+} );
+
+$playButton.addEventListener( "click", () => {
+  $playButton.disabled = true
+  let groupId;
+  document.getElementsByName("groupToPlayOn").forEach(e => {
+    if (e.checked) groupId = e.value
+  })
+  if (groupId) {
+    if (DEBUG) $debug.innerText = `About to play to ${groupId}`
+    chrome.storage.local.get( [ 'playlist' ], ( result ) => {
+      if ( result ) {
+        if ( result.playlist && myAccessToken ) {
+          chrome.runtime.sendMessage( {
+            groupId,
+            token: myAccessToken,
+            playlist: result.playlist,
+            type: "findAndPlay",
+          }, ( res ) => {
+            if ( !res || res === "ERROR" || res.errorCode) {
+              $debug.innerText = `Sorry! Something went wrong. Try again later.`
+              $playButton.disabled = false
+            } else {
+              $playButton.innerHTML = "ENJOY!"
+            }
+          } )
+        } else {
+          $debug.innerText = `Sorry! Something went wrong. Try again later.`      
+          $playButton.disabled = false
+        }
+      }
+    } )
+  } else {
+    $debug.innerText = `Need to select a group to play to!`
+    $playButton.disabled = false
+  }
+} );
+
+$promptSubmit.addEventListener( "click", () => {
+  const prompt = $prompt.value
+  console.log('Prompt submit', prompt)
+  if (prompt && prompt.length) {
+    doOpenAICall(prompt)
+  }
 } );
