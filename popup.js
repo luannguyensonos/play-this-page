@@ -226,7 +226,7 @@ $logoutButton.addEventListener( "click", () => {
   initialize()
 } );
 
-$playButton.addEventListener( "click", () => {
+const handlePlay = (retryAttempt) => {
   $playButton.disabled = true
   let groupId;
   document.getElementsByName("groupToPlayOn").forEach(e => {
@@ -244,11 +244,16 @@ $playButton.addEventListener( "click", () => {
             type: "findAndPlay",
           }, ( res ) => {
             if ( !res || res === "ERROR" || res.errorCode) {
-              $debug.innerText = `Sorry! Something went wrong. Try again later.`
-              $playButton.disabled = false
+              if (!retryAttempt) {
+                // Give it one retry and F&P is a little finnicky
+                handlePlay(1)
+              } else {
+                $debug.innerText = `Sorry! Something went wrong. Try again later.`
+                $playButton.disabled = false
+              }
             } else {
               $debug.innerText = ""
-              $playButton.innerHTML = "ENJOY!"
+              $playButton.innerHTML = "Enjoy!"
             }
           } )
         } else {
@@ -261,6 +266,10 @@ $playButton.addEventListener( "click", () => {
     $debug.innerText = `Need to select a group to play to!`
     $playButton.disabled = false
   }
+}
+
+$playButton.addEventListener( "click", () => {
+  handlePlay()
 } );
 
 $promptSubmit.addEventListener( "click", () => {
