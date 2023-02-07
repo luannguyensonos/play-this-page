@@ -1,4 +1,4 @@
-import gptAPIKey from './secrets.js'
+import { gptAPIKey, oktaToken } from './secrets.js'
 
 
 chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse ) {
@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener( function ( message, sender, sendResponse )
           method: "POST",
           Origin: 'test',
           headers: {
-            'Authorization': 'Basic M2Y0OGUyNTktYTNkNi00MzM4LWE3NDktNDVkZGEzMDBiYjdlOjRkMzg5MDk2LWVhZDgtNGM0Ny05ZmI4LTExMzgyMGJkMzFhZA==',
+            'Authorization': `Basic ${ oktaToken }`,
             "Content-type": "application/x-www-form-urlencoded; charset=UTF-8",
           },
           body: `username=${ encodeURIComponent( message.email ) }&password=${ encodeURIComponent( message.password ) }&grant_type=password&scope=identity-write-creds%20identity-read-basic%20playback-control-all`
