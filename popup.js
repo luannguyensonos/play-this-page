@@ -35,6 +35,27 @@ const $debug = document.getElementById( "debug" );
 let myAccessToken;
 
 
+const loadingStates = [
+  "loading",
+  "hang tight",
+  "still thinking",
+  "just a little longer",
+  "almost there",
+  "bear with me",
+  "it'll be worth the wait",
+  "this is going to work, I promise",
+  "oh boy",
+  "ok now I'm nervous",
+  "fingers crossed",
+  "please, please, please",
+  "ok start praying",
+  "oh come on already",
+  "wanna hear a joke?",
+  "maybe time to face the music",
+  "get it? heh heh",
+]
+
+
 const doActions = ( email, token ) => {
   $debug.innerText = '';
   myAccessToken = token;
@@ -53,23 +74,17 @@ const showPrompt = () => {
   $promptWrapper.classList.remove( "hide" )
 }
 
-const openAILoader = () => {
-  if ( $parseResults.innerText.startsWith( 'OpenAI' ) ) {
-    $parseResults.innerText += '.'
-    setTimeout( () => { openAILoader() }, 333 )
-  }
-}
-
-const fnpLoader = () => {
-  if ( $playButton.innerText.startsWith( 'Find' ) ) {
-    $playButton.innerText += '.'
-    setTimeout( () => { fnpLoader() }, 333 )
+const loader = (node, prefix, counter) => {
+  if ( node.innerText.startsWith( prefix ) ) {
+    const cycle = counter / 10
+    node.innerText += Number.isInteger(cycle) ? ` ${loadingStates[cycle]} ` : '.'
+    setTimeout( () => { loader(node, prefix, counter+1) }, 100 )
   }
 }
 
 const doOpenAICall = ( promptOverride ) => {
-  $parseResults.innerText = `OpenAI is attempting to create a playlist based on the webpage that you're on...`
-  openAILoader()
+  $parseResults.innerText = `OpenAI is creating your playlist...`
+  loader($parseResults, 'OpenAI', 1)
   $parseResults.classList.remove( "hide" )
   $promptSubmit.disabled = true
   $playButton.disabled = true
@@ -87,8 +102,15 @@ const doOpenAICall = ( promptOverride ) => {
         const list = document.createElement( 'div' )
         list.className = 'results'
         res.forEach( r => {
-          const li = document.createElement( 'span' )
-          li.innerText = `"${ r.track }" by ${ r.artist }`
+          const li = document.createElement( 'div' )
+          const track = document.createElement('span')
+          track.className = 'track'
+          track.innerText = r.track
+          const artist = document.createElement('span')
+          artist.className = 'artist'
+          artist.innerText = r.artist
+          li.appendChild(track)
+          li.appendChild(artist)
           list.appendChild( li )
         } )
         $parseResults.innerHTML = '';
@@ -243,8 +265,11 @@ $logoutButton.addEventListener( "click", () => {
 } );
 
 const handlePlay = ( retryAttempt ) => {
-  $playButton.innerHTML = "Find & Play is loading your playlist..."
-  fnpLoader()
+  $debug.innerText = ''
+  $playButton.innerHTML = retryAttempt ?
+    "Thanks for your patience... " :
+    "Find & Play is loading your playlist... "
+  loader($playButton, retryAttempt ? 'Thanks' : 'Find', 1)
   $playButton.disabled = true
   let groupId;
   document.getElementsByName( "groupToPlayOn" ).forEach( e => {
@@ -293,6 +318,11 @@ $playButton.addEventListener( "click", () => {
 
 $refreshGroups.addEventListener( "click", () => {
   fetchHousehold()
+} );
+
+$householdFieldset.addEventListener( "click", () => {
+  $playButton.innerHTML = "Play"
+  $playButton.disabled = false
 } );
 
 $promptSubmit.addEventListener( "click", () => {
