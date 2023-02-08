@@ -24,6 +24,7 @@ const $loggedIn = document.getElementById( "loggedIn" );
 const $parseResults = document.getElementById( "parseResults" );
 const $householdResults = document.getElementById( "householdResults" );
 const $householdFieldset = document.getElementById( "householdFieldset" );
+const $refreshGroups = document.getElementById( "refreshGroups" );
 const $playWrapper = document.getElementById( "playWrapper" );
 const $playButton = document.getElementById( "playButton" );
 const $promptWrapper = document.getElementById( "promptWrapper" );
@@ -108,6 +109,7 @@ const doOpenAICall = ( promptOverride ) => {
 
 const fetchHousehold = () => {
   if ( myAccessToken ) {
+    $householdFieldset.innerHTML = 'Refreshing groups...';
     chrome.runtime.sendMessage( {
       token: myAccessToken,
       type: "fetchHousehold",
@@ -287,6 +289,10 @@ const handlePlay = ( retryAttempt ) => {
 
 $playButton.addEventListener( "click", () => {
   handlePlay()
+} );
+
+$refreshGroups.addEventListener( "click", () => {
+  fetchHousehold()
 } );
 
 $promptSubmit.addEventListener( "click", () => {

@@ -119,3 +119,10 @@ button:disabled {
   color: #000;
   background-color: transparent;
 }
+
+#refreshGroups {
+  font-size: 8px;
+  text-decoration: underline;
+  align-self: flex-end;
+  cursor: pointer;
+}
