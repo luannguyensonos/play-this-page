@@ -14,6 +14,7 @@
 
 
 const DEBUG = false
+const DEMO_MODE = false
 
 const $loginButton = document.getElementById( "loginButton" );
 const $logoutButton = document.getElementById( "logoutButton" );
@@ -74,17 +75,23 @@ const showPrompt = () => {
   $promptWrapper.classList.remove( "hide" )
 }
 
-const loader = (node, prefix, counter) => {
+const loader = (node, prefix, counter = 0) => {
   if ( node.innerText.startsWith( prefix ) ) {
-    const cycle = counter / 10
-    node.innerText += Number.isInteger(cycle) ? ` ${loadingStates[cycle]} ` : '.'
+    const cycle = counter / 15
+    if (Number.isInteger(cycle)) {
+      const msg = loadingStates[cycle % loadingStates.length]
+      const start = node.innerText.indexOf('...') + 3
+      node.innerText = `${node.innerText.substring(0, start)} ${msg}`
+    } else {
+      node.innerText += '.'  
+    }
     setTimeout( () => { loader(node, prefix, counter+1) }, 100 )
   }
 }
 
 const doOpenAICall = ( promptOverride ) => {
   $parseResults.innerText = `OpenAI is creating your playlist...`
-  loader($parseResults, 'OpenAI', 1)
+  loader($parseResults, 'OpenAI')
   $parseResults.classList.remove( "hide" )
   $promptSubmit.disabled = true
   $playButton.disabled = true
@@ -132,6 +139,7 @@ const doOpenAICall = ( promptOverride ) => {
 const fetchHousehold = () => {
   if ( myAccessToken ) {
     $householdFieldset.innerHTML = 'Refreshing groups...';
+    loader($householdFieldset, 'Refresh')
     chrome.runtime.sendMessage( {
       token: myAccessToken,
       type: "fetchHousehold",
@@ -265,17 +273,25 @@ $logoutButton.addEventListener( "click", () => {
 } );
 
 const handlePlay = ( retryAttempt ) => {
-  $debug.innerText = ''
-  $playButton.innerHTML = retryAttempt ?
-    "Thanks for your patience... " :
-    "Find & Play is loading your playlist... "
-  loader($playButton, retryAttempt ? 'Thanks' : 'Find', 1)
-  $playButton.disabled = true
   let groupId;
   document.getElementsByName( "groupToPlayOn" ).forEach( e => {
     if ( e.checked ) groupId = e.value
   } )
   if ( groupId ) {
+    $debug.innerText = ''
+    if (DEMO_MODE) {
+      $playButton.innerHTML = "Find & Play is loading your playlist..."
+      setTimeout(() => {
+        $playButton.innerHTML = "Enjoy!"
+      }, 750)
+    } else {
+      $playButton.innerHTML = retryAttempt ?
+        "Thanks for your patience..." :
+        "Find & Play is loading your playlist..."
+      loader($playButton, retryAttempt ? 'Thanks' : 'Find')
+    }
+    $playButton.disabled = true
+  
     if ( DEBUG ) $debug.innerText = `About to play to ${ groupId }`
     chrome.storage.local.get( [ 'playlist' ], ( result ) => {
       if ( result ) {
@@ -287,13 +303,15 @@ const handlePlay = ( retryAttempt ) => {
             type: "findAndPlay",
           }, ( res ) => {
             if ( !res || res === "ERROR" || res.errorCode ) {
-              if ( !retryAttempt ) {
-                // Give it one retry and F&P is a little finnicky
-                handlePlay( 1 )
-              } else {
-                $playButton.innerHTML = "Play"
-                $debug.innerText = `Sorry! Something went wrong. Try again later.`
-                $playButton.disabled = false
+              if (!DEMO_MODE) {
+                if ( !retryAttempt ) {
+                  // Give it one retry and F&P is a little finnicky
+                  handlePlay( 1 )
+                } else {
+                  $playButton.innerHTML = "Play"
+                  $debug.innerText = `Sorry! Something went wrong. Try again later.`
+                  $playButton.disabled = false
+                }
               }
             } else {
               $debug.innerText = ""
